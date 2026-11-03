@@ -246,7 +246,9 @@ export function ManageView() {
 
         {/* 列表 */}
         <Card className="xl:col-span-3" title={`站点列表（${data?.sites.length ?? 0}）`}>
-          <StateHint loading={loading} empty="还没有站点，先用左侧表单添加一个。" />
+          {(!data || data.sites.length === 0) && (
+            <StateHint loading={loading} empty="还没有站点，先用左侧表单添加一个。" />
+          )}
           {data && data.sites.length > 0 && (
             <ul className="divide-y divide-slate-100 dark:divide-zinc-800">
               {data.sites.map((site) => (
