@@ -190,3 +190,15 @@ export interface SitesResponse {
   anomalyThreshold: number;
   sites: SiteConfig[];
 }
+
+/** /api/health 响应 */
+export interface HealthResponse {
+  ok: boolean;
+  credentialsConfigured: boolean;
+  credentialsError?: string;
+  passwordProtected: boolean;
+  kvAvailable: boolean;
+  kvWarning?: string;
+  siteCount: number;
+  source: SitesSource;
+}
