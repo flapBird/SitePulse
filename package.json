@@ -1,0 +1,38 @@
+{
+  "name": "sitepulse",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.14.0",
+  "dependencies": {
+    "@vinext/cloudflare": "^1.3.1",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-server-dom-webpack": "^19.3.1",
+    "recharts": "^3.3.1",
+    "vinext": "^1.4.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "2.0.0-beta.v.10",
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "^6.2.1",
+    "@vitejs/plugin-rsc": "^0.5.38",
+    "cf": "1.0.0-beta.27",
+    "tailwindcss": "latest",
+    "typescript": "latest",
+    "vite": "8.3.0",
+    "vitest": "^4.0.14"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "vite preview",
+    "deploy": "vinext-cloudflare deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}

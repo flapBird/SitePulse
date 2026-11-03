@@ -1,0 +1,12 @@
+node_modules
+.env*
+.dev.vars
+.dev.vars.*
+.next
+next-env.d.ts
+/dist/
+.vinext/
+.cloudflare/
+.zcode/
+.DS_Store
+*.log
