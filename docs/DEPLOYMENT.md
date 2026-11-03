@@ -82,9 +82,11 @@ SITES_KV: bindings.kv({ id: "REPLACE_WITH_KV_NAMESPACE_ID" }),  // ← 替换成
 
 ### 3. 配置生产密钥
 
+两个 secret 已在 `cloudflare.config.ts` 中用 `bindings.secret()` 声明，生产环境用以下命令赋值：
+
 ```sh
-pnpm exec cf secret put GA_SERVICE_ACCOUNT_JSON   # 粘贴密钥 JSON 全文
-pnpm exec cf secret put DASHBOARD_PASSWORD        # 输入登录密码
+pnpm exec cf workers secrets update GA_SERVICE_ACCOUNT_JSON   # 粘贴密钥 JSON 全文
+pnpm exec cf workers secrets update DASHBOARD_PASSWORD        # 输入登录密码
 ```
 
 （也可在 Cloudflare Dashboard → Workers & Pages → sitepulse → Settings → Variables 中配置。）
@@ -118,11 +120,11 @@ pnpm deploy        # = vinext-cloudflare deploy（构建 + 部署 Worker）
 | --- | --- |
 | 站点行显示「GA4 拒绝访问（403）」 | 服务账号没有加为该 Property 的用户，或角色不是查看者 → 见第一步第 2 节 |
 | 「GA4 Property 不存在（404/400）」 | Property ID 填错（注意不是数据流 ID） |
-| 「未配置 GA_SERVICE_ACCOUNT_JSON」 | 密钥变量没配置 → 见本地开发 / 生产密钥两节 |
+| 「未配置 GA_SERVICE_ACCOUNT_JSON」 | 密钥变量没配置 → 见本地开发 / 生产密钥两节（本地 `.dev.vars`、生产 `cf workers secrets update`） |
 | 「换取 Google 访问令牌失败（invalid_grant）」 | 密钥 JSON 不完整或私钥被改动，重新下载密钥 |
 | 管理页提示「未绑定 SITES_KV」 | 未创建/绑定 KV → 见部署第 2 节 |
 | 「今日/昨日」与 GA4 后台对不上 | 站点的 `timeZone` 与 GA4 Property 报告时区不一致 |
-| 改了 `.dev.vars` / 密钥不生效 | 重启 `pnpm dev`；生产环境重新 `cf secret put` 后无需重启 |
+| 改了 `.dev.vars` / 密钥不生效 | 重启 `pnpm dev`；生产环境重新 `cf workers secrets update` 后无需重启 |
 
 ## 六、安全说明
 

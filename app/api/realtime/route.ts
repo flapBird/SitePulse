@@ -1,5 +1,6 @@
 import { getCachedJson } from "@/lib/cache";
 import { getCredential, getEnv } from "@/lib/env";
+import { requireSession } from "@/lib/guards";
 import { fetchAllSitesRealtime } from "@/lib/queries";
 import { hashConfig, loadSitesConfig } from "@/lib/sites";
 import type { RealtimeResponse, SiteRealtime } from "@/lib/types";
@@ -14,6 +15,9 @@ const CACHE_TTL_SECONDS = 60;
  * ?refresh=1 跳过缓存读取（手动刷新），但结果仍会回写缓存。
  */
 export async function GET(request: Request) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   const url = new URL(request.url);
   const forceRefresh = url.searchParams.get("refresh") === "1";
   const env = getEnv();

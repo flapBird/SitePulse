@@ -12,7 +12,10 @@ import type { SitesConfig, SitesResponse, SiteConfig } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 /** 站点清单（管理界面用）：GET 返回配置与来源 */
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireSession(request);
+  if (denied) return denied;
+
   const loaded = await loadSitesConfig(getEnv().SITES_KV);
   const body: SitesResponse = {
     source: loaded.source,
