@@ -14,8 +14,10 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       IMAGES: bindings.images(),
-      // 站点管理界面读写站点配置的 KV 命名空间（wrangler/cf 创建后绑定同名变量）
-      SITES_KV: bindings.kv({ name: "sitepulse-sites" }),
+      // 站点管理界面读写站点配置的 KV 命名空间。
+      // 本地开发使用 Miniflare 模拟，无需真实 ID；部署前先
+      // `cf kv namespaces create sitepulse-sites` 创建，再把返回的 ID 填到这里。
+      SITES_KV: bindings.kv({ id: "REPLACE_WITH_KV_NAMESPACE_ID" }),
     },
   }),
 });

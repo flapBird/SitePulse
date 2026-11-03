@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "anomalyThreshold": 0.3,
+  "sites": [
+    {
+      "id": "example-com",
+      "name": "示例主站",
+      "url": "https://example.com",
+      "propertyId": "123456789",
+      "timeZone": "Asia/Shanghai",
+      "note": "timeZone 需与 GA4 Property 的报告时区一致"
+    },
+    {
+      "id": "blog-example-com",
+      "name": "示例博客",
+      "url": "https://blog.example.com",
+      "propertyId": "987654321",
+      "note": "timeZone 省略时默认 Asia/Shanghai"
+    }
+  ]
+}
