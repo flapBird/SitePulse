@@ -200,11 +200,13 @@ export function SiteDetailView({ siteId }: { siteId: string }) {
         <StatCard
           label="实时活跃（30 分钟）"
           value={siteRealtime ? (siteRealtime.error ? "—" : formatNumber(siteRealtime.activeUsers)) : "…"}
+          hint={siteRealtime?.error ? siteRealtime.error.message : undefined}
           accent
         />
         <StatCard
           label="30 分钟 PV"
           value={siteRealtime ? (siteRealtime.error ? "—" : formatNumber(siteRealtime.pageviews)) : "…"}
+          hint={siteRealtime?.error ? " " : undefined}
         />
         <StatCard
           label={`${RANGE_OPTIONS.find((o) => o.value === range)?.label ?? ""} UV`}

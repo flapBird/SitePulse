@@ -275,7 +275,7 @@ export function mapApiError(status: number, detail: string): Ga4ApiError {
     return new Ga4ApiError("NOT_FOUND", `GA4 Property 不存在（404）：请检查站点配置中的 Property ID。${detail}`, status);
   }
   if (status === 400) {
-    return new Ga4ApiError("NOT_FOUND", `GA4 请求无效（400）：通常是 Property ID 错误。${detail}`, status);
+    return new Ga4ApiError("NOT_FOUND", `GA4 请求无效（400）：请检查 Property ID 或稍后重试。${detail}`, status);
   }
   if (status === 429) {
     return new Ga4ApiError("QUOTA", `GA4 配额已用尽（429）：请稍后重试或减少站点数量。${detail}`, status);

@@ -181,7 +181,8 @@ export async function fetchSiteDetail(
   const twoMetrics = [{ name: "totalUsers" }, { name: "screenPageViews" }];
   const dateRange = detailDateRange(range, tz, now);
   const dateRanges = [{ ...dateRange }];
-  const orderByPv = [{ metric: { metricName: "screenPageViews", desc: true } }];
+  // 注意：desc 在 OrderBy 层级，不在 MetricOrderBy 内部
+  const orderByPv = [{ metric: { metricName: "screenPageViews" }, desc: true }];
 
   try {
     const [totalsReport, batch] = await Promise.all([
