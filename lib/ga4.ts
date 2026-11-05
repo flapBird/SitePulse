@@ -260,30 +260,32 @@ async function readGoogleError(res: Response): Promise<string> {
   }
 }
 
-/** 把 GA4 的错误响应翻译成稳定错误码 + 中文信息 */
+/** 把 GA4 的错误响应翻译成稳定错误码 + 中文信息（附 Google 原始信息便于定位） */
 export function mapApiError(status: number, detail: string): Ga4ApiError {
+  const raw = detail.length > 300 ? `${detail.slice(0, 300)}…` : detail;
   if (status === 401) {
-    return new Ga4ApiError("AUTH", "Google 鉴权失败（401）：Service Account 密钥可能已失效，请重新配置", status);
+    return new Ga4ApiError("AUTH", `Google 鉴权失败（401）：Service Account 密钥可能已失效。原始信息：${raw}`, status);
   }
   if (status === 403) {
-    const hint = /permission|denied/i.test(detail)
-      ? "请确认已在 GA4 后台把该服务账号添加为对应 Property 的用户（角色：查看者）"
-      : "该账号可能没有对应 Property 的读取权限";
-    return new Ga4ApiError("PERMISSION", `GA4 拒绝访问（403）：${hint}`, status);
+    return new Ga4ApiError(
+      "PERMISSION",
+      `GA4 拒绝访问（403）：请确认已把服务账号加为该 Property 的查看者。Google 原始信息：${raw}`,
+      status,
+    );
   }
   if (status === 404) {
-    return new Ga4ApiError("NOT_FOUND", `GA4 Property 不存在（404）：请检查站点配置中的 Property ID。${detail}`, status);
+    return new Ga4ApiError("NOT_FOUND", `GA4 Property 不存在（404）：请检查站点配置中的 Property ID。${raw}`, status);
   }
   if (status === 400) {
-    return new Ga4ApiError("NOT_FOUND", `GA4 请求无效（400）：请检查 Property ID 或稍后重试。${detail}`, status);
+    return new Ga4ApiError("NOT_FOUND", `GA4 请求无效（400）：请检查 Property ID 或稍后重试。${raw}`, status);
   }
   if (status === 429) {
-    return new Ga4ApiError("QUOTA", `GA4 配额已用尽（429）：请稍后重试或减少站点数量。${detail}`, status);
+    return new Ga4ApiError("QUOTA", `GA4 配额已用尽（429）：请稍后重试或减少站点数量。${raw}`, status);
   }
   if (status >= 500) {
-    return new Ga4ApiError("REQUEST", `Google 服务暂时不可用（${status}）：${detail}`, status);
+    return new Ga4ApiError("REQUEST", `Google 服务暂时不可用（${status}）：${raw}`, status);
   }
-  return new Ga4ApiError("REQUEST", `GA4 请求失败（HTTP ${status}）：${detail}`, status);
+  return new Ga4ApiError("REQUEST", `GA4 请求失败（HTTP ${status}）：${raw}`, status);
 }
 
 async function apiFetch(
