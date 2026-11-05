@@ -17,7 +17,7 @@ export default defineConfig({
       // 站点管理界面读写站点配置的 KV 命名空间。
       // 本地开发使用 Miniflare 模拟，无需真实 ID；部署前先
       // `cf kv namespaces create sitepulse-sites` 创建，再把返回的 ID 填到这里。
-      SITES_KV: bindings.kv({ id: "REPLACE_WITH_KV_NAMESPACE_ID" }),
+      SITES_KV: bindings.kv({ id: "1cf494aa3c914580b16a789f8b8f3f68" }),
       // 密钥：本地在 .dev.vars 提供值，生产用 `cf workers secrets put` 配置
       GA_SERVICE_ACCOUNT_JSON: bindings.secret(),
       DASHBOARD_PASSWORD: bindings.secret(),
