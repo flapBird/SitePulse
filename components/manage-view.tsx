@@ -26,6 +26,7 @@ interface FormState {
   propertyId: string;
   timeZone: string;
   note: string;
+  funnel: boolean;
 }
 
 const EMPTY_FORM: FormState = {
@@ -34,6 +35,7 @@ const EMPTY_FORM: FormState = {
   propertyId: "",
   timeZone: "Asia/Shanghai",
   note: "",
+  funnel: false,
 };
 
 export function ManageView() {
@@ -72,6 +74,7 @@ export function ManageView() {
           propertyId: form.propertyId,
           timeZone: form.timeZone,
           note: form.note,
+          funnel: form.funnel,
         };
         if (editing && form.id) {
           await putJson(`/api/sites/${form.id}`, body);
@@ -101,6 +104,7 @@ export function ManageView() {
       propertyId: site.propertyId,
       timeZone: site.timeZone ?? "Asia/Shanghai",
       note: site.note ?? "",
+      funnel: site.funnel ?? false,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -220,6 +224,21 @@ export function ManageView() {
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-950"
               />
             </label>
+            <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <input
+                type="checkbox"
+                checked={form.funnel}
+                onChange={(e) => setForm((f) => ({ ...f, funnel: e.target.checked }))}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-zinc-600 dark:bg-zinc-900"
+              />
+              <span>
+                <span className="block text-sm font-medium text-slate-700 dark:text-zinc-200">启用转化漏斗</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-slate-400 dark:text-zinc-500">
+                  仅对已接入漏斗埋点（login_start / view_item / checkout_click 等事件）的站点开启；
+                  其他站点开启后查询不到有效数据。
+                </span>
+              </span>
+            </label>
             <div className="flex items-center gap-2 pt-1">
               <button
                 type="submit"
@@ -263,6 +282,7 @@ export function ManageView() {
                     <div className="truncate text-xs text-slate-400 dark:text-zinc-500">
                       {site.url} · Property {site.propertyId}
                       {site.timeZone ? ` · ${site.timeZone}` : ""}
+                      {site.funnel ? " · 漏斗" : ""}
                       {site.note ? ` · ${site.note}` : ""}
                     </div>
                   </div>

@@ -58,6 +58,8 @@ export async function PUT(request: Request, context: RouteContext) {
     propertyId: typeof body.propertyId === "string" ? body.propertyId : existing.propertyId,
     timeZone: typeof body.timeZone === "string" ? body.timeZone : (existing.timeZone ?? ""),
     note: typeof body.note === "string" ? body.note : (existing.note ?? ""),
+    // 编辑表单未显式提供时保留原标记，避免保存其他字段时丢掉漏斗开关
+    funnel: typeof body.funnel === "boolean" ? body.funnel : existing.funnel,
   });
   const updated: SiteConfig = {
     id: existing.id, // id 不可变，作为关联键
@@ -66,6 +68,7 @@ export async function PUT(request: Request, context: RouteContext) {
     propertyId: merged.propertyId ?? existing.propertyId,
     ...(merged.timeZone ? { timeZone: merged.timeZone } : {}),
     ...(merged.note ? { note: merged.note } : {}),
+    ...(merged.funnel != null ? { funnel: merged.funnel } : {}),
   };
 
   const validated = parseSitesConfig({

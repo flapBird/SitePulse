@@ -237,16 +237,23 @@ export function FunnelView({ siteId }: { siteId: string }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notEnabled, setNotEnabled] = useState(false);
 
   useEffect(() => {
     void (async () => {
       const sites = await getJson<{ sites: SiteConfig[] }>("/api/sites").catch(() => null);
-      if (sites) setSite(sites.sites.find((s) => s.id === siteId) ?? null);
+      if (sites) {
+        const found = sites.sites.find((s) => s.id === siteId) ?? null;
+        setSite(found);
+        // 漏斗仅对启用了标记的站点开放：直接访问 URL 时给出明确提示
+        if (found && !found.funnel) setNotEnabled(true);
+      }
     })();
   }, [siteId]);
 
   const load = useCallback(
     async (force: boolean) => {
+      if (notEnabled) return;
       try {
         const res = await getJson<FunnelResponse>(`/api/sites/${siteId}/funnel`, {
           funnel: funnelId,
@@ -260,10 +267,11 @@ export function FunnelView({ siteId }: { siteId: string }) {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    [siteId, funnelId, range, breakdown],
+    [siteId, funnelId, range, breakdown, notEnabled],
   );
 
   useEffect(() => {
+    if (notEnabled) return;
     let cancelled = false;
     setLoading(true);
     void load(false).finally(() => {
@@ -272,7 +280,7 @@ export function FunnelView({ siteId }: { siteId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [load]);
+  }, [load, notEnabled]);
 
   const dataNote = useMemo(() => {
     if (!data) return null;
@@ -283,6 +291,23 @@ export function FunnelView({ siteId }: { siteId: string }) {
     }
     return notes.length > 0 ? notes.join("；") : null;
   }, [data]);
+
+  // 注意：必须在全部 hooks 之后才能提前返回（React hooks 规则）
+  if (notEnabled) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-slate-500 dark:text-zinc-400">
+          该站点未启用转化漏斗（GA4 埋点不包含 login_start / view_item / checkout_click 等漏斗事件）。
+        </p>
+        <a
+          href={`/sites/${siteId}`}
+          className="mt-3 inline-block text-sm text-indigo-600 hover:underline dark:text-indigo-400"
+        >
+          返回站点详情
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

@@ -49,6 +49,14 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   if (!site) {
     return Response.json({ error: `站点不存在：${id}` }, { status: 404 });
   }
+  // 漏斗依赖站点自有的事件埋点（login_start / view_item / checkout_click 等），
+  // 只有配置了 funnel 标记的站点开放查询
+  if (!site.funnel) {
+    return Response.json(
+      { error: `站点「${site.name}」未启用转化漏斗：该站点的 GA4 埋点不包含漏斗事件。` },
+      { status: 400 },
+    );
+  }
   const spec = findFunnel(funnelId);
   if (!spec) {
     return Response.json({ error: `未知漏斗：${funnelId}` }, { status: 400 });

@@ -8,7 +8,8 @@
       "url": "https://font-generators.org",
       "propertyId": "546971242",
       "timeZone": "Asia/Shanghai",
-      "note": "字体网站；Property 报告时区 Asia/Shanghai（Admin API 核对）"
+      "funnel": true,
+      "note": "字体网站；Property 报告时区 Asia/Shanghai（Admin API 核对）；已接入登录/购买漏斗埋点"
     }
   ]
 }

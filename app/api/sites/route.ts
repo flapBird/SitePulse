@@ -33,6 +33,7 @@ interface CreateSiteBody {
   propertyId?: string;
   timeZone?: string;
   note?: string;
+  funnel?: boolean;
 }
 
 /** 新增站点（写入 KV） */
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
     propertyId: input.propertyId,
     ...(input.timeZone ? { timeZone: input.timeZone } : {}),
     ...(input.note ? { note: input.note } : {}),
+    ...(input.funnel != null ? { funnel: input.funnel } : {}),
   };
   // 单站点字段校验（复用整体 schema 的站点部分）
   const parse = parseSitesConfig({ version: 1, anomalyThreshold: loaded.config.anomalyThreshold, sites: [site] });

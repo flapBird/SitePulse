@@ -17,6 +17,12 @@ export interface SiteConfig {
   timeZone?: string;
   /** 备注（可选） */
   note?: string;
+  /**
+   * 是否启用转化漏斗（可选）。漏斗依赖站点自有的事件埋点
+   * （login_start / view_item / checkout_click 等），只有配置了该标记的站点
+   * 才展示漏斗入口并允许查询 /api/sites/[id]/funnel。
+   */
+  funnel?: boolean;
 }
 
 /** 站点配置集合（KV 中存储的整体对象） */

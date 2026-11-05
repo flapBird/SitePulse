@@ -16,7 +16,7 @@ GA4 多站点流量监控 Dashboard —— 在一个看板里集中监控多个�
 | 趋势分析 | 全站实时分钟趋势（面积图）；选中范围的全站/单站趋势（单日按小时、7/30 天按日，双线 UV/PV） |
 | 异常提示 | 「今日 vs 昨日同期」为主、近 7 天/30 天环比为辅，变化超过阈值（默认 ±30%）标记 🔺/🔻 |
 | 站点详情 | 国家/地区、设备类型、热门页面、流量来源（渠道 + 来源/媒介）Top 10 与范围切换 |
-| 转化漏斗 | 用户步骤转化漏斗（GA4 Data API v1alpha `runFunnelReport`，封闭顺序漏斗）：登录漏斗（login_start → 30 分钟内 login）与购买漏斗（view_item[eligible+public+live] → 7 天内 checkout_click → 30 分钟内 begin_checkout → 7 天内 purchase）；每步去重人数、相邻步骤转化率、流失人数/流失率、总体转化率；设备类别拆分；近 7/14/28/90 天；用户级排除 internal 用户；采集链路诊断（区分埋点缺失与真实零转化）；缓存 1 小时 |
+| 转化漏斗 | 站点级开关（`funnel` 标记，仅对已接入漏斗埋点的站点开启）：用户步骤转化漏斗（GA4 Data API v1alpha `runFunnelReport`，封闭顺序漏斗）——登录漏斗（login_start → 30 分钟内 login）与购买漏斗（view_item[eligible+public+live] → 7 天内 checkout_click → 30 分钟内 begin_checkout → 7 天内 purchase）；每步去重人数、相邻步骤转化率、流失人数/流失率、总体转化率；设备类别拆分；近 7/14/28/90 天；用户级排除 internal 用户；采集链路诊断（区分埋点缺失与真实零转化）；缓存 1 小时 |
 | 站点管理 | 新增 / 修改 / 删除站点（写入 KV 立即生效，无需重新部署）；种子文件兜底 |
 | 访问保护 | 设置 `DASHBOARD_PASSWORD` 后全站需登录（HttpOnly Cookie 会话）；不设置则开放 |
 | 运维可见 | 数据更新时间、缓存命中、每站点 GA4 错误码与中文原因、凭据/KV 配置自检 |

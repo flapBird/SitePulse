@@ -32,6 +32,7 @@ const SiteSchema = z.object({
     .refine((tz) => isValidTimeZone(tz), "时区格式不正确，应为 IANA 时区名（如 Asia/Shanghai）")
     .optional(),
   note: z.string().max(200).optional(),
+  funnel: z.boolean().optional(),
 });
 
 const SitesConfigSchema = z.object({
@@ -150,6 +151,7 @@ export function normalizeSiteInput(input: Partial<SiteConfig>): Partial<SiteConf
     const tz = input.timeZone.trim();
     if (tz) out.timeZone = tz;
   }
+  if (typeof input.funnel === "boolean") out.funnel = input.funnel;
   return out;
 }
 

@@ -83,6 +83,36 @@ describe("normalizeSiteInput", () => {
       timeZone: "Asia/Tokyo",
     });
   });
+
+  it("保留 funnel 布尔标记；未提供时不动该字段", () => {
+    expect(normalizeSiteInput({ name: "A", funnel: true }).funnel).toBe(true);
+    expect(normalizeSiteInput({ name: "A", funnel: false }).funnel).toBe(false);
+    expect(normalizeSiteInput({ name: "A" }).funnel).toBeUndefined();
+    expect(normalizeSiteInput({ name: "A", funnel: "yes" as never }).funnel).toBeUndefined();
+  });
+});
+
+describe("站点配置 funnel 标记", () => {
+  it("parseSitesConfig 接受布尔 funnel；拒绝非法类型", () => {
+    const ok = parseSitesConfig({
+      version: 1,
+      anomalyThreshold: 0.3,
+      sites: [
+        { id: "a", name: "A", url: "https://a.com", propertyId: "123456", funnel: true },
+        { id: "b", name: "B", url: "https://b.com", propertyId: "223456" },
+      ],
+    });
+    expect(ok.sites[0].funnel).toBe(true);
+    expect(ok.sites[1].funnel).toBeUndefined();
+
+    expect(() =>
+      parseSitesConfig({
+        version: 1,
+        anomalyThreshold: 0.3,
+        sites: [{ id: "a", name: "A", url: "https://a.com", propertyId: "123456", funnel: "true" as never }],
+      }),
+    ).toThrow();
+  });
 });
 
 describe("loadSitesConfig", () => {
