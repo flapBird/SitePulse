@@ -82,14 +82,25 @@ SITES_KV: bindings.kv({ id: "REPLACE_WITH_KV_NAMESPACE_ID" }),  // ← 替换成
 
 ### 3. 配置生产密钥
 
-两个 secret 已在 `cloudflare.config.ts` 中用 `bindings.secret()` 声明，生产环境用以下命令赋值：
+两个 secret 已在 `cloudflare.config.ts` 中用 `bindings.secret()` 声明。二选一：
+
+**本地一次性部署时随包携带**（生成 `secrets.production.json`，已被 .gitignore 排除）：
 
 ```sh
-pnpm exec cf workers secrets update GA_SERVICE_ACCOUNT_JSON   # 粘贴密钥 JSON 全文
-pnpm exec cf workers secrets update DASHBOARD_PASSWORD        # 输入登录密码
+node scripts/gen-secrets.mjs ~/Downloads/你的密钥.json        # 密码默认取 .dev.vars
+pnpm exec cf deploy --secrets-file ./secrets.production.json # 构建并带密钥部署
 ```
 
-（也可在 Cloudflare Dashboard → Workers & Pages → sitepulse → Settings → Variables 中配置。）
+部署成功后 Worker 上已永久带有密钥，之后的部署（含 GitHub 构建）无需再提供；建议删除该文件。
+
+**或部署后在 Dashboard / CLI 配置**：
+
+```sh
+pnpm exec cf workers secrets update GA_SERVICE_ACCOUNT_JSON --worker sitepulse --type secret_text --text '<密钥JSON字符串>'
+pnpm exec cf workers secrets update DASHBOARD_PASSWORD --worker sitepulse --type secret_text --text '<你的密码>'
+```
+
+（也可在 Cloudflare Dashboard → Workers & Pages → sitepulse → Settings → Variables 中添加，类型选 Secret。）
 
 ### 4. 部署
 
