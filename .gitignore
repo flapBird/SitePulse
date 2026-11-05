@@ -4,6 +4,7 @@ node_modules
 .dev.vars.*
 secrets*.json
 service-account*.json
+banded-object-*.json
 *.pem
 .next
 next-env.d.ts
