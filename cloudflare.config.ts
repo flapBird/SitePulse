@@ -6,6 +6,12 @@ export default defineConfig({
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-11-03",
     compatibilityFlags: ["nodejs_compat"],
+    // 自定义域名（与 Dashboard 绑定保持一致，否则部署会因配置冲突被拒绝）
+    domains: ["monitor.leeswalvpn.ccwu.cc"],
+    // 与 Dashboard 当前设置保持一致（cf 严格模式下，配置与 Dashboard 不一致会被拒绝部署；
+    // 如需开关 workers.dev / 预览地址，在 Dashboard 修改后同步这里）
+    workersDev: true,
+    previewUrls: true,
     assets: {
       htmlHandling: "none",
       notFoundHandling: "none",
