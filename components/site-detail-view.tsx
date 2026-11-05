@@ -180,6 +180,12 @@ export function SiteDetailView({ siteId }: { siteId: string }) {
           {detail && !detail.error && (
             <span className="text-xs text-slate-400 dark:text-zinc-500">更新于 {formatTime(detail.fetchedAt)}</span>
           )}
+          <a
+            href={`/sites/${siteId}/funnel`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            转化漏斗 →
+          </a>
           <button
             type="button"
             onClick={() => {

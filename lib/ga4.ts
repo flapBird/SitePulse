@@ -386,3 +386,168 @@ export async function runRealtimeReport(
 ): Promise<GaRunReportResponse> {
   return (await postReport(cred, propertyId, "runRealtimeReport", request)) as GaRunReportResponse;
 }
+
+// ---------------------------------------------------------------------------
+// 漏斗报表（Data API v1alpha runFunnelReport）
+// ---------------------------------------------------------------------------
+
+/** 顺序漏斗的一步：事件 + 可选参数过滤 + 可选距上一步的时间窗口 */
+export interface GaFunnelStep {
+  /** 步骤名（决定返回的 funnelStepName 维度值，如 "1. 发起登录"） */
+  name: string;
+  /** 事件名；paramFilter 非空时只统计同时满足参数条件的事件 */
+  eventName: string;
+  /** 事件参数过滤（原始参数名，非 customEvent: 前缀维度） */
+  paramFilter?: { parameter: string; value: string }[];
+  /** 距上一步完成的时间窗口（秒）；第一步忽略 */
+  withinSecondsFromPriorStep?: number;
+}
+
+/** runFunnelReport 请求结构（响应见 GaFunnelReportResponse） */
+export interface GaRunFunnelReportRequest {
+  dateRanges?: GaDateRange[];
+  funnel: {
+    /** 封闭漏斗（必须从第一步进入）。规范要求 false。 */
+    isOpenFunnel: false;
+    steps: GaFunnelStep[];
+  };
+  /** 拆分维度（如 deviceCategory）；country/sessionSourceMedium 待确认后加入 */
+  breakdownDimension?: string;
+  /** 用户级排除细分：命中所列事件 + 参数条件的用户整期排除 */
+  excludeSegment?: {
+    /** 携带目标参数的事件名清单（v1alpha 的 eventName 不支持 "*" 通配，
+     *  必须枚举真实事件名，否则排除静默失效——已实测验证） */
+    eventNames: string[];
+    parameter: string;
+    value: string;
+  };
+}
+
+/**
+ * v1alpha 返回结构的最小子集。注意两个实测怪癖：
+ * - metricHeaders 会把 4 个指标重复两遍（8 个头），行内 metricValues 只有
+ *   4 个值——解析必须按 header 名称对齐并去重，不能按下标硬编码。
+ * - 0 用户的步骤整行省略，需按步骤序号补零。
+ */
+export interface GaFunnelSubReport {
+  dimensionHeaders?: { name: string }[];
+  metricHeaders?: { name: string; type: string }[];
+  rows?: GaRow[];
+  metadata?: {
+    samplingMetadatas?: { samplesReadCount?: string; samplingSpaceSize?: string }[];
+  };
+}
+
+export interface GaFunnelReportResponse {
+  funnelTable?: GaFunnelSubReport;
+  funnelVisualization?: GaFunnelSubReport;
+  propertyQuota?: unknown;
+}
+
+const ALPHA_API_BASE = "https://analyticsdata.googleapis.com/v1alpha";
+
+/** 把内部步骤描述转成 v1alpha 的 FunnelStep JSON */
+function toApiFunnelSteps(steps: GaFunnelStep[]): unknown[] {
+  return steps.map((step) => {
+    const apiStep: Record<string, unknown> = {
+      name: step.name,
+      filterExpression: {
+        funnelEventFilter: {
+          eventName: step.eventName,
+          ...(step.paramFilter && step.paramFilter.length > 0
+            ? {
+                funnelParameterFilterExpression: {
+                  andGroup: {
+                    expressions: step.paramFilter.map((p) => ({
+                      funnelParameterFilter: {
+                        eventParameterName: p.parameter,
+                        stringFilter: { matchType: "EXACT", value: p.value },
+                      },
+                    })),
+                  },
+                },
+              }
+            : {}),
+        },
+      },
+    };
+    if (step.withinSecondsFromPriorStep != null) {
+      apiStep.isDirectlyFollowedBy = false;
+      apiStep.withinDurationFromPriorStep = `${step.withinSecondsFromPriorStep}s`;
+    }
+    return apiStep;
+  });
+}
+
+/** 构造用户级排除 segment（USER_EXCLUSION_PERMANENT：出现过即整期排除） */
+function toApiExcludeSegment(
+  exclude: NonNullable<GaRunFunnelReportRequest["excludeSegment"]>,
+): unknown {
+  return {
+    name: "排除内部账号",
+    userSegment: {
+      exclusion: {
+        userExclusionDuration: "USER_EXCLUSION_PERMANENT",
+        userExclusionCriteria: {
+          andConditionGroups: [
+            {
+              conditionScoping: "USER_CRITERIA_ACROSS_ALL_SESSIONS",
+              segmentFilterExpression: {
+                orGroup: {
+                  expressions: exclude.eventNames.map((eventName) => ({
+                    segmentEventFilter: {
+                      eventName,
+                      segmentParameterFilterExpression: {
+                        orGroup: {
+                          expressions: [
+                            {
+                              segmentParameterFilter: {
+                                eventParameterName: exclude.parameter,
+                                stringFilter: { matchType: "EXACT", value: exclude.value },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  })),
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+}
+
+/**
+ * 顺序用户漏斗（v1alpha runFunnelReport）。封闭漏斗，步骤间允许出现其他
+ * 事件（isDirectlyFollowedBy: false），时间窗口按相邻步骤计算。
+ * 复用与 v1beta 相同的只读授权与超时/重试/错误归一化。
+ */
+export async function runFunnelReport(
+  cred: ServiceAccountCredentials,
+  propertyId: string,
+  request: GaRunFunnelReportRequest,
+): Promise<GaFunnelReportResponse> {
+  const token = await getAccessToken(cred);
+  const body: Record<string, unknown> = {
+    dateRanges: request.dateRanges,
+    funnel: {
+      isOpenFunnel: false,
+      steps: toApiFunnelSteps(request.funnel.steps),
+    },
+  };
+  if (request.breakdownDimension) {
+    body.funnelBreakdown = {
+      breakdownDimension: { name: request.breakdownDimension },
+      limit: "15",
+    };
+  }
+  if (request.excludeSegment) {
+    body.segments = [toApiExcludeSegment(request.excludeSegment)];
+  }
+  const url = `${ALPHA_API_BASE}/properties/${encodeURIComponent(propertyId)}:runFunnelReport`;
+  return (await apiFetch(url, token, body)) as GaFunnelReportResponse;
+}

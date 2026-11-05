@@ -16,6 +16,7 @@ GA4 多站点流量监控 Dashboard —— 在一个看板里集中监控多个�
 | 趋势分析 | 全站实时分钟趋势（面积图）；选中范围的全站/单站趋势（单日按小时、7/30 天按日，双线 UV/PV） |
 | 异常提示 | 「今日 vs 昨日同期」为主、近 7 天/30 天环比为辅，变化超过阈值（默认 ±30%）标记 🔺/🔻 |
 | 站点详情 | 国家/地区、设备类型、热门页面、流量来源（渠道 + 来源/媒介）Top 10 与范围切换 |
+| 转化漏斗 | 用户步骤转化漏斗（GA4 Data API v1alpha `runFunnelReport`，封闭顺序漏斗）：登录漏斗（login_start → 30 分钟内 login）与购买漏斗（view_item[eligible+public+live] → 7 天内 checkout_click → 30 分钟内 begin_checkout → 7 天内 purchase）；每步去重人数、相邻步骤转化率、流失人数/流失率、总体转化率；设备类别拆分；近 7/14/28/90 天；用户级排除 internal 用户；采集链路诊断（区分埋点缺失与真实零转化）；缓存 1 小时 |
 | 站点管理 | 新增 / 修改 / 删除站点（写入 KV 立即生效，无需重新部署）；种子文件兜底 |
 | 访问保护 | 设置 `DASHBOARD_PASSWORD` 后全站需登录（HttpOnly Cookie 会话）；不设置则开放 |
 | 运维可见 | 数据更新时间、缓存命中、每站点 GA4 错误码与中文原因、凭据/KV 配置自检 |
@@ -79,16 +80,21 @@ app/                     页面与 API 路由（route handlers）
   api/realtime           30 分钟活跃/PV + 分钟趋势（缓存 60s）
   api/history            今日/昨日/7天/30天 聚合 + 逐日/逐小时 + 异常（缓存 5min）
   api/sites[/id][/detail] 站点配置 CRUD（KV）与维度明细（缓存 5min）
+  api/sites/[id]/funnel  转化漏斗（v1alpha runFunnelReport，缓存 1h，附事件采集诊断）
   api/auth/*             登录 / 登出（HttpOnly Cookie 会话）
 proxy.ts                 全站登录保护（Next.js 16 proxy 约定）
 lib/
-  ga4.ts                 GA4 REST 客户端：WebCrypto RS256 JWT → OAuth2 token（缓存）→ runReport/batch/runRealtimeReport，超时 + 重试 + 错误归一化
+  ga4.ts                 GA4 REST 客户端：WebCrypto RS256 JWT → OAuth2 token（缓存）→ runReport/batch/runRealtimeReport/runFunnelReport（v1alpha），超时 + 重试 + 错误归一化
+  funnel.ts              漏斗定义（登录/购买）、v1alpha 响应归一化（按 header 名映射、0 人步骤补零、RESERVED_TOTAL 拆分）、用户级排除
   cache.ts               Cloudflare Cache API + 内存双层缓存（forceRefresh 支持）
   sites.ts               种子 + KV 配置解析、zod 校验
   stats.ts               聚合引擎：周期汇总/环比/异常检测/补零（纯函数）
   datetime.ts            时区感知的「今日/昨日/同期」计算（Intl）
   queries.ts             每站点的 GA4 请求编排（并发上限 8，单站点隔离失败）
 config/sites.json        站点种子配置
+scripts/verify-ga4.mjs        GA4 连通性自检（实时 + 7 天报表）
+scripts/verify-funnel.mjs     漏斗前置探测（权限/事件采集/自定义维度/接口能力）
+scripts/verify-funnel-e2e.mjs 漏斗端到端验证（复刻路由请求构造，真实 API 出数）
 docs/DEPLOYMENT.md       部署与授权完整指南
 ```
 

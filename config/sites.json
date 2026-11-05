@@ -1,5 +1,14 @@
 {
   "version": 1,
   "anomalyThreshold": 0.3,
-  "sites": []
+  "sites": [
+    {
+      "id": "font-generators-org",
+      "name": "font-generators.org",
+      "url": "https://font-generators.org",
+      "propertyId": "546971242",
+      "timeZone": "Asia/Shanghai",
+      "note": "字体网站；Property 报告时区 Asia/Shanghai（Admin API 核对）"
+    }
+  ]
 }
